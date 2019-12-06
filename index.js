@@ -2,7 +2,21 @@ const express = require('express');
 const router = express.Router();
 const app = express();
 
+const jwt = require("express-jwt");
+const jwksRsa = require("jwks-rsa");
 const mongoClient = require('mongodb').MongoClient;
+
+const jwtCheck = jwt({
+  secret: jwksRsa.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: "react-notepad.eu.auth0.com/.well-known/jwks.json"
+  }),
+  audience: 'http://localhost:5000',
+  issuer: "react-notepad.eu.auth0.com/",
+  algorithms: ['RS256']
+});
 
 //TODO move to config
 const uri = "mongodb+srv://reactTodo:reactTodo@cluster0-lufki.mongodb.net/test?retryWrites=true&w=majority";
