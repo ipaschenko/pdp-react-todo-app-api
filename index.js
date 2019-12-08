@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const app = express();
 
+var cors = require('cors');
 const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const mongoClient = require('mongodb').MongoClient;
@@ -27,7 +28,9 @@ const dbOptions = {
 
 let dbTest;
 
-app.get('/', async(req, res) => {
+app.use(cors());
+
+app.get('/list', async(req, res) => {
   let data = await dbTest.collection('test').find().toArray();
   console.log(data);
   res.send(data);
