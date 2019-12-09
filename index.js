@@ -22,7 +22,7 @@ const jwtCheck = jwt({
   algorithms: ['RS256']
 });
 
-let dbTest;
+let dbReactTodo;
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -30,21 +30,26 @@ app.use(bodyParser.json());
 app.use(jwtCheck);
 
 app.post('/list', async(req, res) => {
-  const user = req.user;
-  console.log(user);
-
+  const user = req.user.sub;
   const data = req.body;
-  console.log(data);
-  res.send(data);
+  console.log({...data, user});
+
+  try {
+    console.log({...data, user, done: false, createdAt: new Date().getTime()});
+    await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
+    res.send('Task was saved to database');
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e);
+  }
+
 });
 
 
 app.get('/list', async(req, res) => {
-  const user = req.user;
+  const user = req.user.sub;
   console.log(user);
-  let data = await dbTest.collection('test').find().toArray();
-  // console.log(req.headers);
-  // console.log(data);
+  let data = await dbReactTodo.collection('tasks').find().toArray();
   res.send(data);
 });
 
@@ -54,7 +59,7 @@ mongoClient.connect(dbConfig.uri, dbConfig.options, (err, db)   => {
     console.log('Error occurred while connecting to MongoDB Atlas...', err);
   }
 
-  dbTest = db.db('test');
+  dbReactTodo = db.db('reactTodo');
   console.log('Connected...');
 
   //TODO move to config
