@@ -1,43 +1,55 @@
-const express = require('express');
-const router = express.Router();
-const app = express();
+const authConfig = require('./authConfig');
+const dbConfig = require('./dbConfig');
 
-var cors = require('cors');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const express = require('express');
 const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const mongoClient = require('mongodb').MongoClient;
+const app = express();
+const router = express.Router();
 
 const jwtCheck = jwt({
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: "react-notepad.eu.auth0.com/.well-known/jwks.json"
+    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`,
   }),
-  audience: 'http://localhost:5000',
-  issuer: "react-notepad.eu.auth0.com/",
+  audience: authConfig.audience,
+  issuer: `https://${authConfig.domain}/`,
   algorithms: ['RS256']
 });
-
-//TODO move to config
-const uri = "mongodb+srv://reactTodo:reactTodo@cluster0-lufki.mongodb.net/test?retryWrites=true&w=majority";
-const dbOptions = {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
-};
 
 let dbTest;
 
 app.use(cors());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
+app.use(jwtCheck);
 
-app.get('/list', async(req, res) => {
-  let data = await dbTest.collection('test').find().toArray();
+app.post('/list', async(req, res) => {
+  const user = req.user;
+  console.log(user);
+
+  const data = req.body;
   console.log(data);
   res.send(data);
 });
 
 
-mongoClient.connect(uri, dbOptions, (err, db)   => {
+app.get('/list', async(req, res) => {
+  const user = req.user;
+  console.log(user);
+  let data = await dbTest.collection('test').find().toArray();
+  // console.log(req.headers);
+  // console.log(data);
+  res.send(data);
+});
+
+
+mongoClient.connect(dbConfig.uri, dbConfig.options, (err, db)   => {
   if(err) {
     console.log('Error occurred while connecting to MongoDB Atlas...', err);
   }
@@ -50,9 +62,6 @@ mongoClient.connect(uri, dbOptions, (err, db)   => {
 
   app.listen(port, () => console.log('Server started on 5000 port'));
 });
-
-
-// require('./routes/test')(router, dbTest);
 
 
 
