@@ -7,6 +7,7 @@ const express = require('express');
 const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const mongoClient = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID;
 const app = express();
 const router = express.Router();
 
@@ -35,7 +36,6 @@ app.post('/list', async(req, res) => {
   console.log({...data, user});
 
   try {
-    console.log({...data, user, done: false, createdAt: new Date().getTime()});
     await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
     res.send('Task was saved to database');
   } catch (e) {
@@ -48,9 +48,21 @@ app.post('/list', async(req, res) => {
 
 app.get('/list', async(req, res) => {
   const user = req.user.sub;
-  console.log(user);
-  let data = await dbReactTodo.collection('tasks').find().toArray();
+  let data = await dbReactTodo.collection('tasks').find({user}).toArray();
   res.send(data);
+});
+
+app.delete('/list/:id', async(req, res) => {
+  try {
+    const user = req.user.sub;
+    console.log(ObjectID(req.params.id));
+    await dbReactTodo.collection('tasks').deleteOne({user, _id: ObjectID(req.params.id)});
+    res.send({success: 'Task was deleted'});  
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e);
+  }
+  
 });
 
 
