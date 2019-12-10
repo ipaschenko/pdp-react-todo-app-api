@@ -55,14 +55,23 @@ app.get('/list', async(req, res) => {
 app.delete('/list/:id', async(req, res) => {
   try {
     const user = req.user.sub;
-    console.log(ObjectID(req.params.id));
     await dbReactTodo.collection('tasks').deleteOne({user, _id: ObjectID(req.params.id)});
     res.send({success: 'Task was deleted'});  
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
   }
-  
+});
+
+app.patch('/list/:id', async(req, res) => {
+  try {
+    const user = req.user.sub;
+    await dbReactTodo.collection('tasks')
+      .findOneAndUpdate({user, _id: ObjectID(req.params.id)}, {$set: {...req.body}});
+    res.send({success: 'Task was done'});
+  } catch (e) {
+    res.status(500).send(e);
+  }
 });
 
 
