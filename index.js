@@ -37,7 +37,7 @@ app.post('/list', async(req, res) => {
 
   try {
     await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
-    res.send('Task was saved to database');
+    res.send('Task has been created');
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
@@ -56,7 +56,7 @@ app.delete('/list/:id', async(req, res) => {
   try {
     const user = req.user.sub;
     await dbReactTodo.collection('tasks').deleteOne({user, _id: ObjectID(req.params.id)});
-    res.send({success: 'Task was deleted'});  
+    res.send('Task has been deleted');
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
@@ -68,7 +68,7 @@ app.patch('/list/:id', async(req, res) => {
     const user = req.user.sub;
     await dbReactTodo.collection('tasks')
       .findOneAndUpdate({user, _id: ObjectID(req.params.id)}, {$set: {...req.body}});
-    res.send({success: 'Task was done'});
+    res.send('Task has been done');
   } catch (e) {
     res.status(500).send(e);
   }
