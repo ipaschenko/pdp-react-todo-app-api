@@ -33,11 +33,9 @@ app.use(jwtCheck);
 app.post('/list', async(req, res) => {
   const user = req.user.sub;
   const data = req.body;
-  console.log({...data, user});
-
   try {
     await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
-    res.send('Task has been created');
+    setTimeout(() => res.send('Task has been created'), 1000 );
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
@@ -49,14 +47,15 @@ app.post('/list', async(req, res) => {
 app.get('/list', async(req, res) => {
   const user = req.user.sub;
   let data = await dbReactTodo.collection('tasks').find({user}).toArray();
-  res.send(data);
+  setTimeout(() => res.send(data), 1000 );
+
 });
 
 app.delete('/list/:id', async(req, res) => {
   try {
     const user = req.user.sub;
     await dbReactTodo.collection('tasks').deleteOne({user, _id: ObjectID(req.params.id)});
-    res.send('Task has been deleted');
+    setTimeout(() => res.send('Task has been deleted'), 1000 );
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
@@ -68,7 +67,7 @@ app.patch('/list/:id', async(req, res) => {
     const user = req.user.sub;
     await dbReactTodo.collection('tasks')
       .findOneAndUpdate({user, _id: ObjectID(req.params.id)}, {$set: {...req.body}});
-    res.send('Task has been done');
+    setTimeout(() => res.send('Task has been done'), 1000 );
   } catch (e) {
     res.status(500).send(e);
   }
