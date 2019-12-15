@@ -9,7 +9,6 @@ const jwksRsa = require("jwks-rsa");
 const mongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const app = express();
-const router = express.Router();
 
 const jwtCheck = jwt({
   secret: jwksRsa.expressJwtSecret({
@@ -82,10 +81,9 @@ mongoClient.connect(dbConfig.uri, dbConfig.options, (err, db)   => {
   dbReactTodo = db.db('reactTodo');
   console.log('Connected...');
 
-  //TODO move to config
-  const port = 5000;
+  app.set('port', (process.env.PORT || 3000));
 
-  app.listen(port, () => console.log('Server started on 5000 port'));
+  app.listen(app.get('port'), () => console.log('Server started on 5000 port'));
 });
 
 
