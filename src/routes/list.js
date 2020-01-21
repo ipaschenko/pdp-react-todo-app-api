@@ -17,7 +17,7 @@ module.exports = function(router, dbCollection) {
             await dbCollection.insertOne(newTask);
             res.send({success: 'Task has been created!'});
         } catch (e) {
-            res.status(500).send(e);
+            res.status(500).send({e, task: newTask});
         }
     });
 
