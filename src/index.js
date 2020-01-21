@@ -10,6 +10,7 @@ const mongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const listRouter = require('./routes/list');
 const app = express();
+const router = express.Router();
 
 const jwtCheck = jwt({
   secret: jwksRsa.expressJwtSecret({
@@ -81,7 +82,7 @@ mongoClient.connect(dbConfig.uri, dbConfig.options, (err, db)   => {
   }
   dbReactTodo = db.db('reactTodo');
   console.log('Connected...');
-  listRouter(dbReactTodo);
+  listRouter(router, dbReactTodo);
   app.set('port', (process.env.PORT || 5000));
   app.listen(app.get('port'), () => console.log('Server started on 5000 port'));
 });
