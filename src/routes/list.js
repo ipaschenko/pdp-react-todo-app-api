@@ -13,11 +13,12 @@ module.exports = function(router, dbCollection) {
 
     router.post('/list', async(req, res) => {
         try {
-            const newTask = {...data, user, done: false, createdAt: new Date().getTime()};
-            await dbCollection.insertOne(newTask);
+            const user = req.user.sub;
+            const data = req.body;
+            await dbCollection.insertOne({...data, user, done: false, createdAt: new Date().getTime()});
             res.send({success: 'Task has been created!'});
         } catch (e) {
-            res.status(500).send({e, task: newTask});
+            res.status(500).send(e);
         }
     });
 
