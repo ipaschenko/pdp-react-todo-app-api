@@ -1,93 +1,43 @@
-const authConfig = require('./authConfig');
-const dbConfig = require('./dbConfig');
-
 const bodyParser = require('body-parser');
-const cors = require('cors');
 const express = require('express');
-const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
+const cors = require('cors');
+const jwt = require("express-jwt");
 const mongoClient = require('mongodb').MongoClient;
-const ObjectID = require('mongodb').ObjectID;
-const listRouter = require('./routes/list');
-const app = express();
+require('dotenv').config()
+
+const dbConfig = require('./dbConfig');
+const listRoutes = require('./routes/list');
+
 const router = express.Router();
+const app = express();
 
 const jwtCheck = jwt({
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: `https://${authConfig.domain}/.well-known/jwks.json`,
+    jwksUri: `${process.env.AUTH_CONFIG_DOMAIN}/.well-known/jwks.json`,
   }),
-  audience: authConfig.audience,
-  issuer: `https://${authConfig.domain}/`,
+  audience: process.env.AUTH_CONFIG_AUDIENCE,
+  issuer: `${process.env.AUTH_CONFIG_DOMAIN}/`,
   algorithms: ['RS256']
 });
-
-let dbReactTodo;
 
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(jwtCheck);
+app.use('/', router);
 
-// app.post('/list', async(req, res) => {
-//   const user = req.user.sub;
-//   const data = req.body;
-//   try {
-//     await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
-//     res.send('Task has been created');
-//   } catch (e) {
-//     console.log(e);
-//     res.status(500).send(e);
-//   }
-// });
-
-app.get('/list', async(req, res) => {
-  try {
-    const user = req.user.sub;
-    let data = await dbReactTodo.collection('tasks').find({user}).toArray();
-    res.send(data);
-  } catch (e) {
-    res.status(500).send(e);
-  }
-});
-
-app.delete('/list/:id', async(req, res) => {
-  try {
-    const user = req.user.sub;
-    await dbReactTodo.collection('tasks').deleteOne({user, _id: ObjectID(req.params.id)});
-    res.send('Task has been deleted');
-  } catch (e) {
-    console.log(e);
-    res.status(500).send(e);
-  }
-});
-
-app.patch('/list/:id', async(req, res) => {
-  try {
-    const user = req.user.sub;
-    await dbReactTodo.collection('tasks')
-      .findOneAndUpdate({user, _id: ObjectID(req.params.id)}, {$set: {...req.body}});
-    res.send('Task has been done');
-  } catch (e) {
-    res.status(500).send(e);
-  }
-});
-
-
-mongoClient.connect(dbConfig.uri, dbConfig.options, (err, db)   => {
+mongoClient.connect(process.env.DB_URI, dbConfig.options, (err, db)   => {
   if(err) {
     console.log('Error occurred while connecting to MongoDB Atlas...', err);
   }
-  dbReactTodo = db.db('reactTodo');
+  const taskCollection = db.db('reactTodo').collection('task');
   console.log('Connected...');
-  listRouter(router, dbReactTodo);
-  app.set('port', (process.env.PORT || 5000));
-  app.listen(app.get('port'), () => console.log('Server started on 5000 port'));
+  listRoutes(router, taskCollection);
+  const port = process.env.PORT || 5000;
+  app.set('port', port);
+  app.listen(app.get('port'), () => console.log(`Server started on ${port} port`));
 });
-
-
-
-
-

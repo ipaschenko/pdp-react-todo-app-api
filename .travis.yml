@@ -12,4 +12,4 @@ on:
 deploy:
   provider: heroku
   api_key:
-    secure: f0d5ac77-9801-4b20-8138-d434dc8e6fd6
+    secure: $HEROKU_SECRET_KEY
