@@ -8,6 +8,7 @@ const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const mongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
+const listRouter = require('./routes/list');
 const app = express();
 
 const jwtCheck = jwt({
@@ -29,17 +30,17 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(jwtCheck);
 
-app.post('/list', async(req, res) => {
-  const user = req.user.sub;
-  const data = req.body;
-  try {
-    await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
-    res.send('Task has been created');
-  } catch (e) {
-    console.log(e);
-    res.status(500).send(e);
-  }
-});
+// app.post('/list', async(req, res) => {
+//   const user = req.user.sub;
+//   const data = req.body;
+//   try {
+//     await dbReactTodo.collection('tasks').insertOne({...data, user, done: false, createdAt: new Date().getTime()});
+//     res.send('Task has been created');
+//   } catch (e) {
+//     console.log(e);
+//     res.status(500).send(e);
+//   }
+// });
 
 app.get('/list', async(req, res) => {
   try {
@@ -49,8 +50,6 @@ app.get('/list', async(req, res) => {
   } catch (e) {
     res.status(500).send(e);
   }
-
-
 });
 
 app.delete('/list/:id', async(req, res) => {
@@ -82,6 +81,7 @@ mongoClient.connect(dbConfig.uri, dbConfig.options, (err, db)   => {
   }
   dbReactTodo = db.db('reactTodo');
   console.log('Connected...');
+  listRouter(dbReactTodo);
   app.set('port', (process.env.PORT || 5000));
   app.listen(app.get('port'), () => console.log('Server started on 5000 port'));
 });
